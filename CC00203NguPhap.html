@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BÀI 3 – NGỮ PHÁP - Flashcard</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Arial,"Microsoft YaHei",sans-serif;
+  background:#fdfbf7;
+  display:flex; justify-content:center; color:#202124;
+}
+.app{width:min(860px,96vw); padding:30px 0 40px}
+h1{text-align:center;margin:0 0 15px;font-size:38.4px; font-weight: bold;}
+.progress{text-align:center;font-size:21.6px;color:#444;margin-bottom:20px; font-weight: bold;}
+.card-wrap{perspective:1200px; cursor:pointer}
+.card{
+  width:100%; height:640px; position:relative; transform-style:preserve-3d;
+  transition:transform .55s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:24px; background:white; box-shadow:0 15px 45px rgba(0,0,0,.15);
+  display:flex; flex-direction:column; padding:36px; border:3px solid #eee; overflow-y:auto;
+}
+.front{justify-content:flex-start; align-items:flex-start; text-align:left}
+.back{transform:rotateY(180deg); text-align:left; align-items:flex-start; justify-content:flex-start; padding-top:40px;}
+
+.hl{color: #7c2d12; font-weight: bold; background-color: #fef08a; padding: 2px 6px; border-radius: 4px; border: 1px solid #eab308;}
+.hl-blue { color: #ffffff; font-weight: bold; background-color: #2563eb; padding: 2px 6px; border-radius: 4px; }
+.hl-red { color: #dc2626; font-weight: bold; }
+
+/* Pinyin mặt trước: căn giữa */
+.pinyin{
+  font-size:1.68em;
+  color:#666666;
+  margin-bottom:10px;
+  font-weight:bold;
+  text-align:center;
+  width:100%;
+}
+
+.zh-front { font-size: 2.16em; font-weight: bold; margin-bottom: 6px; line-height: 1.3; color: #dc2626; text-align: center; width: 100%; }
+
+/* Mặt sau - Tăng kích thước chữ phần diễn giải lên 20% (từ 1.2em lên 1.44em) */
+.zh-back { color: #2563eb; font-weight: bold; font-size: 1.44em; line-height: 1.3; display: inline-block; margin-top: 10px; margin-bottom: 2px; }
+.pinyin-back { color: #666666; font-weight: bold; font-size: 1.2em; display: block; margin: 2px 0; }
+.vi-back { font-size: 1.2em; color: #333; display: block; margin-bottom: 12px; }
+
+.desc-front { font-size: 1.5em; color: #333; margin: 8px 0; text-align: left; width: 100%; line-height: 1.4; }
+.desc { font-size: 1.5em; color: #333; margin: 0; text-align: left; width: 100%; line-height: 1.4; }
+
+.controls{display:flex;gap:20px;justify-content:center;margin-top:30px}
+button{
+  border:0;border-radius:20px;padding:20px 35px;font-size:26.4px;
+  cursor:pointer;background:#e9eef7;color:#233044; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+button.primary{background:#2563eb;color:white}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h1 id="title">BÀI 3 – NGỮ PHÁP</h1>
+  <div class="progress" id="progress"></div>
+
+  <div class="card-wrap" id="cardWrap" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="face front" id="frontFace"></div>
+      <div class="face back" id="backFace"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="event.stopPropagation();prevCard()">← TRƯỚC</button>
+    <button class="primary" onclick="event.stopPropagation();flipCard()">LẬT THẺ</button>
+    <button onclick="event.stopPropagation();nextCard()">TIẾP →</button>
+  </div>
+</div>
+
+<script>
+const cards = [
+  {
+    f: "<div class='zh-front'>GẦN NHƯ, XẤP XỈ, NA NÁ</div>" +
+       "<div class='zh-front'>差不多</div>" +
+       "<div class='desc-front'>" +
+       "Là tính từ, phó từ. Nghĩa đen là \"không khác nhau nhiều\", thường dùng để diễn tả sự vật, sự việc gần giống nhau, xấp xỉ nhau hoặc sắp hoàn thành.<br><br>" +
+       "<b>Các cách kết hợp:</b><br>" +
+       "• <b>差不多:</b> Dùng một mình, diễn tả: xấp xỉ nhau, gần giống nhau, hòm hòm, gần xong.<br>" +
+       "• <b>差不多 + Động từ / Tính từ:</b> Gần như, xấp xỉ, tương đương nhau.<br>" +
+       "• <b>Động từ + 得 + 差不多:</b> Làm gì đó gần xong, sắp hoàn thành.<br>" +
+       "• <b>差不多 + Động từ:</b> Khoảng chừng, xấp xỉ (dùng để ước lượng số lượng, thời gian).<br><br>" +
+       "<b>Lưu ý trong giao tiếp:</b> Người Trung Quốc rất hay dùng 差不多 để trả lời khi được hỏi, ngụ ý là \"gần như vậy\", \"đại khái vậy\", khiến người nghe đôi khi khó xác định chính xác sự thật là gì." +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>我們開始學中文的時間差不多。</span><br><span class='pinyin-back'>Wǒmen kāishǐ xué zhōngwén de shíjiān chàbuduō.</span><span class='vi-back'>(Thời gian chúng ta bắt đầu học tiếng Trung gần như nhau.)</span>" +
+       "<span class='zh-back'>那幾家超市賣的東西都差不多。</span><br><span class='pinyin-back'>Nà jǐ jiā chāoshì mài de dōngxi dōu chàbuduō.</span><span class='vi-back'>(Đồ họa bán ở mấy siêu thị đó đều gần giống nhau.)</span>" +
+       "<span class='zh-back'>我們國家的夏天和這裡差不多。</span><br><span class='pinyin-back'>Wǒmen guójiā de xiàtiān hé zhèli chàbuduō.</span><span class='vi-back'>(Mùa hè ở nước tôi và ở đây gần giống nhau.)</span>" +
+       "<span class='zh-back'>我的功課寫得差不多了。</span><br><span class='pinyin-back'>Wǒ de gōngkè xiě de chàbuduō le.</span><span class='vi-back'>(Bài tập về nhà của tôi làm gần xong rồi.)</span>" +
+       "<span class='zh-back'>我的旅行計畫得差不多了，你看一看吧！</span><br><span class='pinyin-back'>Wǒ de lǚxíng jìhuà de chàbuduō le, nǐ kàn yí kàn ba!</span><span class='vi-back'>(Kế hoạch du lịch của tôi chuẩn bị gần xong rồi, bạn xem thử đi!)</span>" +
+       "<span class='zh-back'>找工作的事準備得差不多了。</span><br><span class='pinyin-back'>Zhǎo gōngzuò de shì zhǔnbèi de chàbuduō le.</span><span class='vi-back'>(Chuyện tìm việc làm chuẩn bị gần xong rồi.)</span>" +
+       "<span class='zh-back'>從這裡到捷運站，差不多（走）十分鐘。</span><br><span class='pinyin-back'>Cóng zhèli dào jiéyùnzhàn, chàbuduō (zǒu) shí fēnzhōng.</span><span class='vi-back'>(Từ đây đến ga tàu điện ngầm, khoảng chừng (đi bộ) 10 phút.)</span>" +
+       "<span class='zh-back'>哥哥和弟弟差不多高。</span><br><span class='pinyin-back'>Gēge hé dìdi chàbuduō gāo.</span><span class='vi-back'>(Anh trai và em trai cao xấp xỉ nhau.)</span>" +
+       "<span class='zh-back'>我差不多學了四個月的中文了。</span><br><span class='pinyin-back'>Wǒ chàbuduō xué le sì gè yuè de zhōngwén le.</span><span class='vi-back'>(Tôi học tiếng Trung được khoảng 4 tháng rồi.)</span>" +
+       "<span class='zh-back'>A: 你新年要吃的東西都準備了嗎？<br>B: 差不多了。</span><br><span class='pinyin-back'>A: Nǐ xīnnián yào chī de dōngxi dōu zhǔnbèi le ma?<br>B: Chàbuduō le.</span><span class='vi-back'>(A: Đồ ăn Tết năm mới bạn đã chuẩn bị hết chưa?<br>B: Gần xong rồi.)</span>" +
+       "<span class='zh-back'>A: 我們準備要去餐廳了嗎？<br>B: 差不多了。</span><br><span class='pinyin-back'>A: Wǒmen zhǔnbèi yào qù cāntīng le ma?<br>B: Chàbuduō le.</span><span class='vi-back'>(A: Chúng ta chuẩn bị đi đến nhà hàng chưa?<br>B: Sắp rồi.)</span>" +
+       "<span class='zh-back'>A: 你習慣花蓮的生活了嗎？<br>B: 差不多了。</span><br><span class='pinyin-back'>A: Nǐ xíguàn Huālián de shēnghuó le ma?<br>B: Chàbuduō le.</span><span class='vi-back'>(A: Bạn đã quen với cuộc sống ở Hoa Liên chưa?<br>B: Cũng gần quen rồi.)</span>" +
+       "<span class='zh-back'>A: 現在十點了嗎？<br>B: 差不多了。</span><br><span class='pinyin-back'>A: Xiànzài shí diǎn le ma?<br>B: Chàbuduō le.</span><span class='vi-back'>(A: Bây giờ 10 giờ rồi à?<br>B: Gần 10 giờ rồi.)</span>" +
+       "<span class='zh-back'>A: 現在十一點半，你想幾點去吃中飯？<br>B: 差不多十二點了。</span><br><span class='pinyin-back'>A: Xiànzài shíyī diǎn bàn, nǐ xiǎng jǐ diǎn qù chī zhōngfàn?<br>B: Chàbuduō shí'èr diǎn le.</span><span class='vi-back'>(A: Bây giờ 11 giờ rưỡi, bạn muốn mấy giờ đi ăn trưa?<br>B: Khoảng 12 giờ.)</span>" +
+       "<span class='zh-back'>A: 已經四點十五分了，你打算幾點回家？<br>B: 差不多五點。</span><br><span class='pinyin-back'>A: Yǐjīng sì diǎn shíwǔ fēn le, nǐ dǎsuàn jǐ diǎn huíjiā?<br>B: Chàbuduō wǔ diǎn.</span><span class='vi-back'>(A: Đã 4 giờ 15 phút rồi, bạn định mấy giờ về nhà?<br>B: Khoảng 5 giờ.)</span>" +
+       "<span class='zh-back'>A: 你想在台灣住多久？<br>B: 差不多一年。</span><br><span class='pinyin-back'>A: Nǐ xiǎng zài Táiwān zhù duōjiǔ?<br>B: Chàbuduō yì nián.</span><span class='vi-back'>(A: Bạn muốn ở Đài Loan bao lâu?<br>B: Khoảng một năm.)</span>" +
+       "<span class='zh-back'>A: 你每個月要付多少電話費？<br>B: 差不多五百塊。</span><br><span class='pinyin-back'>A: Nǐ měi gè yuè yào fù duōshǎo diànhuàfèi?<br>B: Chàbuduō wǔ bǎi kuài.</span><span class='vi-back'>(A: Mỗi tháng bạn phải trả bao nhiêu tiền điện thoại?<br>B: Khoảng 500 tệ.)</span>" +
+       "<span class='zh-back'>A: 你的國家秋天氣跟這裡差不多嗎？<br>B: 差不多。</span><br><span class='pinyin-back'>A: Nǐ de guójiā qiūtiān qì gēn zhèli chàbuduō ma?<br>B: Chàbuduō.</span><span class='vi-back'>(A: Thời tiết mùa thu ở nước bạn có giống ở đây không?<br>B: Gần giống.)</span>" +
+       "<span class='zh-back'>A: 你去旅行的事準備得怎麼樣了？<br>B: 準備得差不多了。</span><br><span class='pinyin-back'>A: Nǐ qù lǚxíng de shì zhǔnbèi de zěnmeyàng le?<br>B: Zhǔnbèi de chàbuduō le.</span><span class='vi-back'>(A: Chuyện đi du lịch của bạn chuẩn bị thế nào rồi?<br>B: Chuẩn bị gần xong rồi.)</span>" +
+       "<span class='zh-back'>A: 聽說白如玉的喉嚨發炎了，今天好了嗎？<br>B: 差不多好了。</span><br><span class='pinyin-back'>A: Tīngshuō Bái Rúyù de hóulóng fāyán le, jīntiān hǎo le ma?<br>B: Chàbuduō hǎo le.</span><span class='vi-back'>(A: Nghe nói Bạch Như Ngọc bị viêm họng, hôm nay đỡ chưa?<br>B: Gần khỏi rồi.)</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>ĐÃ TỪNG</div>" +
+       "<div class='zh-front'>Động từ + 過</div>" +
+       "<div class='desc-front'>" +
+       "Trợ từ 過 gắn sau động từ hành động để chỉ chủ thể đã từng trải qua, đã từng làm việc gì đó trong quá khứ (không quan trọng là khi nào). Câu trải nghiệm thường đi kèm với thời gian kéo dài, tần suất hoặc thời gian quá khứ không xác định.<br><br>" +
+       "• <b>Phủ định:</b> Chỉ dùng 沒 (không dùng 不) trong mẫu câu này. Cấu trúc: <code>沒 + Động từ + 過</code><br>" +
+       "• <b>Nghi vấn:</b> Có thể dùng dạng 有沒有 hoặc thêm 嗎 ở cuối câu.<br><br>" +
+       "<b>Lưu ý cách dùng:</b> Trợ từ 過 thường đi với thời gian không xác định như 以前 (trước đây), 小時候 (hồi nhỏ), mà không đi với thời gian xác định cụ thể như 昨天 (hôm qua) hay 上午十點半 (10 giờ rưỡi sáng). So sánh 過 và 了: Cả hai đều nói về sự việc trong quá khứ nhưng 過 nhấn mạnh đến trải nghiệm (có thể lặp lại), còn 了 nhấn mạnh đến một sự việc đã xảy ra tại một thời điểm cụ thể trong quá khứ." +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>我在高中學過中文。</span><br><span class='pinyin-back'>Wǒ zài gāozhōng xué guò zhōngwén.</span><span class='vi-back'>(Tôi đã từng học tiếng Trung ở trường cấp ba.)</span>" +
+       "<span class='zh-back'>我去過那個語言中心。</span><br><span class='pinyin-back'>Wǒ qù guò nà gè yǔyán zhōngxīn.</span><span class='vi-back'>(Tôi đã từng đến trung tâm ngôn ngữ đó.)</span>" +
+       "<span class='zh-back'>我教過他兩年西班牙文。</span><br><span class='pinyin-back'>Wǒ jiāo guò tā liǎng nián Xibānyáwén.</span><span class='vi-back'>(Tôi đã từng dạy anh ấy tiếng Tây Ban Nha hai năm.)</span>" +
+       "<span class='zh-back'>我學過兩次西班牙文。</span><br><span class='pinyin-back'>Wǒ xué guò liǎng cì Xibānyáwén.</span><span class='vi-back'>(Tôi đã từng học tiếng Tây Ban Nha hai lần.)</span>" +
+       "<span class='zh-back'>他在越南住過三年。</span><br><span class='pinyin-back'>Tā zài Yuènán zhù guò sān nián.</span><span class='vi-back'>(Anh ấy đã từng sống ở Việt Nam ba năm.)</span>" +
+       "<span class='zh-back'>你已經去過這麼多國家，還想去哪裡？</span><br><span class='pinyin-back'>Nǐ yǐjīng qù guò zhème duō guójiā, hái xiǎng qù nǎlǐ?</span><span class='vi-back'>(Bạn đã từng đi qua nhiều nước như vậy rồi, còn muốn đi đâu nữa?)</span>" +
+       "<span class='zh-back'>我以前沒學過中文。</span><br><span class='pinyin-back'>Wǒ yǐqián méi xué guò zhōngwén.</span><span class='vi-back'>(Trước đây tôi chưa từng học tiếng Trung.)</span>" +
+       "<span class='zh-back'>我沒去過法國。</span><br><span class='pinyin-back'>Wǒ méi qù guò Fǎguó.</span><span class='vi-back'>(Tôi chưa từng đi Pháp.)</span>" +
+       "<span class='zh-back'>我沒買過那家的麵包。</span><br><span class='pinyin-back'>Wǒ méi mǎi guò nà jiā de miànbāo.</span><span class='vi-back'>(Tôi chưa từng mua bánh mì ở tiệm đó.)</span>" +
+       "<span class='zh-back'>他去過日本沒有？</span><br><span class='pinyin-back'>Tā qù guò Rìběn méiyǒu?</span><span class='vi-back'>(Anh ấy đã từng đi Nhật chưa?)</span>" +
+       "<span class='zh-back'>王老師的課，你上過嗎？</span><br><span class='pinyin-back'>Wáng lǎoshī de kè, nǐ shàng guò ma?</span><span class='vi-back'>(Tiết học của thầy Vương, bạn đã từng học chưa?)</span>" +
+       "<span class='zh-back'>你是不是看過那本書？有意思嗎？</span><br><span class='pinyin-back'>Nǐ shì bú shì kàn guò nà běn shū? Yǒu yìsi ma?</span><span class='vi-back'>(Có phải bạn đã từng đọc cuốn sách đó không? Có thú vị không?)</span>" +                 
+       "<span class='zh-back'>他去過很多國家。</span><br><span class='pinyin-back'>Tā qù guò hěn duō guójiā.</span><span class='vi-back'>(Anh ấy đã từng đi nhiều nước - tính đến nay.)</span>" +
+       "<span class='zh-back'>他去了很多國家。</span><br><span class='pinyin-back'>Tā qù le hěn duō guójiā.</span><span class='vi-back'>(Anh ấy đã đi nhiều nước - trong chuyến đi vừa rồi.)</span>" +
+       "<span class='zh-back'>他點過日本菜。</span><br><span class='pinyin-back'>Tā diǎn guò Rìběncài.</span><span class='vi-back'>(Anh ấy đã từng gọi món Nhật - có kinh nghiệm, hỏi ý kiến anh ấy đi.)</span>" +
+       "<span class='zh-back'>他點了日本菜。</span><br><span class='pinyin-back'>Tā diǎn le Rìběncài.</span><span class='vi-back'>(Anh ấy đã gọi món Nhật - cho buổi tụ tập tuần trước của chúng ta.)</span>" +
+       "<span class='zh-back'>我們都看過這部電影，可是沒聽過這首歌。</span><br><span class='pinyin-back'>Wǒmen dōu kàn guò zhè bù diànyǐng, kěshì méi tīng guò zhè shǒu gē.</span><span class='vi-back'>(Chúng tôi đều đã từng xem bộ phim này, nhưng chưa từng nghe bài hát này.)</span>" +
+       "<span class='zh-back'>A: 你坐過台北捷運嗎？<br>B: 我坐過。</span><br><span class='pinyin-back'>A: Nǐ zuò guò Táiběi jiéyùn ma?<br>B: Wǒ zuò guò.</span><span class='vi-back'>(A: Bạn đã từng đi tàu điện ngầm Đài Bắc chưa?<br>B: Tôi đã từng đi.)</span>" +
+       "<span class='zh-back'>A: 王小姐去過日本嗎？<br>B: 我知道她去過好幾次。</span><br><span class='pinyin-back'>A: Wáng xiǎojiě qù guò Rìběn ma?<br>B: Wǒ zhīdào tā qù guò hǎo jǐ cì.</span><span class='vi-back'>(A: Cô Vương đã từng đi Nhật chưa?<br>B: Tôi biết cô ấy đã từng đi mấy lần rồi.)</span>" +
+       "<span class='zh-back'>A: 你在台灣看過醫生、吃過藥嗎？<br>B: 我看過醫生，也吃過藥。</span><br><span class='pinyin-back'>A: Nǐ zài Táiwān kàn guò yīshēng, chī guò yào ma?<br>B: Wǒ kàn guò yīshēng, yě chī guò yào.</span><span class='vi-back'>(A: Bạn ở Đài Loan đã từng khám bác sĩ, uống thuốc chưa?<br>B: Tôi đã từng khám bác sĩ, cũng đã từng uống thuốc.)</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>MỚI</div>" +
+       "<div class='zh-front'>才</div>" +
+       "<div class='desc-front'>" +
+       "Phó từ, dùng để chỉ số lượng ít ỏi, chưa đạt đến mức mà người ta thường mong đợi.<br><br>" +
+       "Trong ngữ cảnh số lượng, cả 才 và 只 đều có nghĩa là \"chỉ\". Tuy nhiên, 只 chỉ đơn thuần nêu sự thật, còn 才 hàm ý rằng lẽ ra mọi người thường dành nhiều thời gian hơn cho việc đó (hoặc số lượng nhiều hơn).<br><br>" +
+       "Sau 才 có thể đi trực tiếp với cụm từ chỉ số lượng, còn sau 只 thì không. <br>Cho nên có thể nói: <b>這本書才五十塊錢。</b> (Cuốn sách này mới có 50 tệ). <br>Không thể nói *這本書只五十塊錢." +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>法國，我才去過一次。</span><br><span class='pinyin-back'>Fǎguó, wǒ cái qù guò yí cì.</span><span class='vi-back'>(Nước Pháp, tôi mới đi được một lần.)</span>" +
+       "<span class='zh-back'>一本書才五十塊。真便宜。</span><br><span class='pinyin-back'>Yì běn shū cái wǔshí kuài. Zhēn piányi.</span><span class='vi-back'>(Một cuốn sách mới có 50 tệ. Thật là rẻ.)</span>" +
+       "<span class='zh-back'>他才學了半年中文。</span><br><span class='pinyin-back'>Tā cái xué le bàn nián zhōngwén.</span><span class='vi-back'>(Cậu ấy mới học tiếng Trung được nửa năm.)</span>" +
+       "<span class='zh-back'>你今天才吃了一個麵包嗎？</span><br><span class='pinyin-back'>Nǐ jīntiān cái chī le yí gè miànbāo ma?</span><span class='vi-back'>(Hôm nay bạn mới ăn có một cái bánh mì thôi à?)</span>" +
+       "<span class='zh-back'>他是不是才學了兩個星期的中文？</span><br><span class='pinyin-back'>Tā shì bú shì cái xué le liǎng gè xīngqī de zhōngwén?</span><span class='vi-back'>(Có phải cậu ấy mới học tiếng Trung được hai tuần không?)</span>" +
+       "<span class='zh-back'>台北捷運，你才坐過一次嗎？</span><br><span class='pinyin-back'>Táiběi jiéyùn, nǐ cái zuò guò yí cì ma?</span><span class='vi-back'>(Tàu điện ngầm Đài Bắc, bạn mới đi có một lần thôi à?)</span>" +
+       "<span class='zh-back'>這支手機才一千元，不貴。</span><br><span class='pinyin-back'>Zhè zhī shǒujī cái yì qiān yuán, bú guì.</span><span class='vi-back'>(Chiếc điện thoại này mới có 1000 tệ, không đắt.)</span>" +
+       "<span class='zh-back'>從這裡到捷運站才五分鐘，不遠。</span><br><span class='pinyin-back'>Cóng zhèli dào jiéyùnzhàn cái wǔ fēnzhōng, bù yuǎn.</span><span class='vi-back'>(Từ đây đến ga tàu điện ngầm mới có 5 phút, không xa.)</span>" +
+       "<span class='zh-back'>書，我才看了一頁。</span><br><span class='pinyin-back'>Shū, wǒ cái kàn le yí yè.</span><span class='vi-back'>(Sách, tôi mới đọc được có một trang.)</span>" +
+       "<span class='zh-back'>A: 你常去貓空喝茶嗎？<br>B: 不常，才去過兩次。</span><br><span class='pinyin-back'>A: Nǐ cháng qù Māokōng hē chá ma?<br>B: Bù cháng, cái qù guò liǎng cì.</span><span class='vi-back'>(A: Bạn có thường đi Miêu Không uống trà không?<br>B: Không thường, mới đi được hai lần.)</span>" +
+       "<span class='zh-back'>A: 今天要考的漢字，你都準備了嗎？<br>B: 還沒，我才寫了一遍。</span><br><span class='pinyin-back'>A: Jīntiān yào kǎo de hànzì, nǐ dōu zhǔnbèi le ma?<br>B: Hái méi, wǒ cái xiě le yí biàn.</span><span class='vi-back'>(A: Chữ Hán thi hôm nay, bạn đã chuẩn bị hết chưa?<br>B: Chưa, tôi mới viết được một lần.)</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>MỚI</div>" +
+       "<div class='zh-front'>才</div>" +
+       "<div class='desc-front'>" +
+       "才 trong trường hợp này ngụ ý rằng sự việc được nhắc đến diễn ra tốn nhiều thời gian hơn, hoặc muộn hơn so với dự kiến.<br><br>" +
+       "Gần như luôn dùng với các cụm từ chỉ thời gian. Bản thân 才 không thể dùng với 不, mà phải dùng 不是.<br><br>" +
+       "<b>Lưu ý cách dùng:</b> 就 chỉ sự việc xảy ra sớm hơn mong đợi, còn 才 chỉ sự việc xảy ra muộn hơn lâu hơn mong đợi." +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>你現在才來，大家等你很久了。</span><br><span class='pinyin-back'>Nǐ xiànzài cái lái, dàjiā děng nǐ hěn jiǔ le.</span><span class='vi-back'>(Bây giờ bạn mới đến, mọi người đợi bạn lâu lắm rồi.)</span>" +
+       "<span class='zh-back'>他是昨天才到台北的，所以睡得不好。</span><br><span class='pinyin-back'>Tā shì zuótiān cái dào Táiběi de, suǒyǐ shuì de bù hǎo.</span><span class='vi-back'>(Anh ấy hôm qua mới đến Đài Bắc, cho nên ngủ không ngon.)</span>" +
+       "<span class='zh-back'>我等了十分鐘，捷運才來。</span><br><span class='pinyin-back'>Wǒ děng le shí fēnzhōng, jiéyùn cái lái.</span><span class='vi-back'>(Tôi đợi 10 phút, tàu điện ngầm mới đến.)</span>" +
+       "<span class='zh-back'>我跟你一起住了十年了，我不是現在才了解你的。</span><br><span class='pinyin-back'>Wǒ gēn nǐ yìqǐ zhù le shí nián le, wǒ bú shì xiànzài cái liǎojiě nǐ de.</span><span class='vi-back'>(Tôi ở với bạn 10 năm rồi, không phải bây giờ tôi mới hiểu bạn.)</span>" +
+       "<span class='zh-back'>他不是今天才告訴老闆他不能來上班的。</span><br><span class='pinyin-back'>Tā bú shì jīntiān cái gàosù lǎobǎn tā bù néng lái shàngbān de.</span><span class='vi-back'>(Không phải hôm nay anh ấy mới nói với sếp là anh ấy không thể đi làm.)</span>" +
+       "<span class='zh-back'>我們不是今天才認識的，是三年前就認識的。</span><br><span class='pinyin-back'>Wǒmen bú shì jīntiān cái rènshi de, shì sān nián qián jiù rènshi de.</span><span class='vi-back'>(Chúng ta không phải hôm nay mới quen nhau, mà là quen nhau từ 3 năm trước rồi.)</span>" +
+       "<span class='zh-back'>王先生這個月才來上班的嗎？</span><br><span class='pinyin-back'>Wáng xiānshēng zhè gè yuè cái lái shàngbān de ma?</span><span class='vi-back'>(Có phải tháng này anh Vương mới đi làm không?)</span>" +
+       "<span class='zh-back'>你是不是昨天晚上十點才打電話給他的？</span><br><span class='pinyin-back'>Nǐ shì bú shì zuótiān wǎnshang shí diǎn cái dǎ diànhuà gěi tā de?</span><span class='vi-back'>(Có phải tối qua 10 giờ bạn mới gọi điện cho anh ấy không?)</span>" +
+       "<span class='zh-back'>你什麼時候才可以跟我去看電影？</span><br><span class='pinyin-back'>Nǐ shénme shíhou cái kěyǐ gēn wǒ qù kàn diànyǐng?</span><span class='vi-back'>(Bao giờ bạn mới có thể đi xem phim với tôi?)</span>" +       
+      "<span class='zh-back'>我等了十分鐘，捷運就來了。</span><br><span class='pinyin-back'>Wǒ děng le shí fēnzhōng, jiéyùn jiù lái le.</span><span class='vi-back'>(Tôi đợi 10 phút, tàu điện ngầm đã đến rồi - nhanh hơn nghĩ.)</span>" +
+      "<span class='zh-back'>我等了十分鐘，捷運才來。</span><br><span class='pinyin-back'>Wǒ děng le shí fēnzhōng, jiéyùn cái lái.</span><span class='vi-back'>(Tôi đợi 10 phút, tàu điện ngầm mới đến - chậm hơn nghĩ.)</span>" +
+      "<span class='zh-back'>我們八點上課，田中先生今天早上十點才來。</span><br><span class='pinyin-back'>Wǒmen bā diǎn shàngkè, Tiánzhōng xiānshēng jīntiān zǎoshang shí diǎn cái lái.</span><span class='vi-back'>(Chúng tôi 8 giờ học, anh Tanaka sáng nay 10 giờ mới đến.)</span>" +
+       "<span class='zh-back'>我們要搭下午三點的飛機，可是陳先生四點才到機場。</span><br><span class='pinyin-back'>Wǒmen yào dā xiàwǔ sān diǎn de fēijī, kěshì Chén xiānshēng sì diǎn cái dào jīchǎng.</span><span class='vi-back'>(Chúng tôi phải bắt chuyến bay 3 giờ chiều, nhưng anh Trần 4 giờ mới đến sân bay.)</span>" +
+       "<span class='zh-back'>馬安同四點下課，不過他五點才回家。</span><br><span class='pinyin-back'>Mǎ Āntóng sì diǎn xiàkè, búguò tā wǔ diǎn cái huíjiā.</span><span class='vi-back'>(Mã An Đồng 4 giờ tan học, nhưng anh ấy 5 giờ mới về nhà.)</span>" +
+       "<span class='zh-back'>今天捷運五分鐘就來了。</span><br><span class='pinyin-back'>Jīntiān jiéyùn wǔ fēnzhōng jiù lái le.</span><span class='vi-back'>(Hôm nay tàu điện ngầm 5 phút đã đến rồi.)</span>" +
+       "<span class='zh-back'>紐約今年十二月才開始下雪。</span><br><span class='pinyin-back'>Niǔyuē jīnnián shí'èr yuè cái kāishǐ xià xuě.</span><span class='vi-back'>(New York năm nay tháng 12 mới bắt đầu có tuyết.)</span>" +
+       "<span class='zh-back'>他們到師大以後才認識的。</span><br><span class='pinyin-back'>Tāmen dào Shī-dà yǐhòu cái rènshi de.</span><span class='vi-back'>(Họ đến Sư phạm rồi mới quen nhau.)</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>NHỚ RA</div>" +
+       "<div class='zh-front'>想起來</div>" +
+       "<div class='desc-front'>" +
+       "Gồm động từ 想 (nghĩ, nhớ) đi với trợ từ 起(來), diễn tả việc một điều gì đó đã được nhớ lại, chợt nhớ ra.<br><br>" +
+       "<b>Phủ định:</b> Thêm 沒想起來, 想不起來" +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>他的電話，我想起來了。</span><br><span class='pinyin-back'>Tā de diànhuà, wǒ xiǎng qǐlái le.</span><span class='vi-back'>(Số điện thoại của anh ấy, tôi nhớ ra rồi.)</span>" +
+       "<span class='zh-back'>那位小姐姓張，我想起來了。</span><br><span class='pinyin-back'>Nà wèi xiǎojiě xìng Zhāng, wǒ xiǎng qǐlái le.</span><span class='vi-back'>(Cô gái đó họ Trương, tôi nhớ ra rồi.)</span>" +
+       "<span class='zh-back'>回到學校以後，以前的事我都想起來了。</span><br><span class='pinyin-back'>Huí dào xuéxiào yǐhòu, yǐqián de shì wǒ dōu xiǎng qǐlái le.</span><span class='vi-back'>(Sau khi về trường, những chuyện trước đây tôi đều nhớ ra rồi.)</span>" +
+       "<span class='zh-back'>他姓張，早上見面的時候我怎麼沒想起來。</span><br><span class='pinyin-back'>Tā xìng Zhāng, zǎoshang jiànmiàn de shíhou wǒ zěnme méi xiǎng qǐlái.</span><span class='vi-back'>(Anh ấy họ Trương, lúc gặp mặt sáng nay sao tôi lại không nhớ ra nhỉ.)</span>" +
+       "<span class='zh-back'>他是誰，我還沒想起來。</span><br><span class='pinyin-back'>Tā shì shuí, wǒ hái méi xiǎng qǐlái.</span><span class='vi-back'>(Anh ấy là ai, tôi vẫn chưa nhớ ra.)</span>" +
+       "<span class='zh-back'>機車在哪裡，他一直沒想起來。</span><br><span class='pinyin-back'>Jīchē zài nǎlǐ, tā yìzhí méi xiǎng qǐlái.</span><span class='vi-back'>(Xe máy ở đâu, anh ấy mãi vẫn không nhớ ra.)</span>" +
+       "<span class='zh-back'>我們見過面。你想起來了嗎？</span><br><span class='pinyin-back'>Wǒmen jiàn guò miàn. Nǐ xiǎng qǐlái le ma?</span><span class='vi-back'>(Chúng ta đã gặp nhau rồi. Bạn nhớ ra chưa?)</span>" +
+       "<span class='zh-back'>他叫什麼名字？你是不是想起來了？</span><br><span class='pinyin-back'>Tā jiào shénme míngzi? Nǐ shì bú shì xiǎng qǐlái le?</span><span class='vi-back'>(Anh ấy tên là gì? Có phải bạn nhớ ra rồi không?)</span>" +
+       "<span class='zh-back'>你的東西在哪裡，想起來了沒有？</span><br><span class='pinyin-back'>Nǐ de dōngxi zài nǎlǐ, xiǎng qǐlái le méiyǒu?</span><span class='vi-back'>(Đồ của bạn ở đâu, nhớ ra chưa?)</span>" +
+       "<span class='zh-back'>A: 你好！<br>B: 請問你是…？<br>A: 我是妳的高中同學啊！<br>B: 噢，我想起來了。</span><br><span class='pinyin-back'>A: Nǐ hǎo!<br>B: Qǐngwèn nǐ shì...?<br>A: Wǒ shì nǐ de gāozhōng tóngxué a!<br>B: Ō, wǒ xiǎng qǐlái le.</span><span class='vi-back'>(A: Chào bạn!<br>B: Cho hỏi bạn là...?<br>A: Tôi là bạn học cấp ba của cậu đây!<br>B: Ồ, tôi nhớ ra rồi.)</span>" +
+       "<span class='zh-back'>A: 我們幾點去？<br>B: 去哪裡？<br>A: 妳不記得了啊！<br>B: 噢，我想起來了。</span><br><span class='pinyin-back'>A: Wǒmen jǐ diǎn qù?<br>B: Qù nǎlǐ?<br>A: Nǐ bú jìde le a!<br>B: Ō, wǒ xiǎng qǐlái le.</span><span class='vi-back'>(A: Mấy giờ chúng ta đi?<br>B: Đi đâu?<br>Cậu không nhớ à!<br>Ồ, tôi nhớ ra rồi.)</span>" +
+       "<span class='zh-back'>A: 你知道陳月美什麼時候回越南嗎？<br>B: 她跟我說過，我想想。<br>A: 妳想起來了嗎？<br>B: 我想起來了，是下個月一號。</span><br><span class='pinyin-back'>A: Nǐ zhīdào Chén Yuèměi shénme shíhou huí Yuènán ma?<br>B: Tā gēn wǒ shuō guò, wǒ xiǎngxiang.<br>A: Nǐ xiǎng qǐlái le ma?<br>B: Wǒ xiǎng qǐlái le, shì xià gè yuè yí hào.</span><span class='vi-back'>(A: Bạn biết Trần Nguyệt Mỹ khi nào về Việt Nam không?<br>B: Cô ấy nói với tôi rồi, để tôi nghĩ xem.<br>A: Cậu nhớ ra chưa?<br>B: Tôi nhớ ra rồi, là ngày mùng 1 tháng sau.)</span>" +
+       "<span class='zh-back'>老師：你的作業本子呢？<br>學生：我不知道在哪裡。<br>老師：快想一想！<br>學生：好，我想一想，我想起來了，在家裡。</span><br><span class='pinyin-back'>Lǎoshī: Nǐ de zuòyè běnzi ne?<br>Xuésheng: Wǒ bù zhīdào zài nǎlǐ.<br>Lǎoshī: Kuài xiǎng yì xiǎng!<br>Xuésheng: Hǎo, wǒ xiǎng yì xiǎng, wǒ xiǎng qǐlái le, zài jiālǐ.</span><span class='vi-back'>(Thầy: Vở bài tập của em đâu?<br>Học sinh: Em không biết ở đâu.<br>Thầy: Mau nghĩ xem!<br>Học sinh: Vâng, em nghĩ xem, em nhớ ra rồi, ở nhà.)</span>" +
+       "<span class='zh-back'>A: 我忘了昨天看見的同學姓什麼。<br>B: 你沒想一想嗎？<br>A: 當然想過，可是我沒想起來。<br>B: 我想沒關係吧。</span><br><span class='pinyin-back'>A: Wǒ wàng le zuótiān kànjiàn de tóngxué xìng shénme.<br>B: Nǐ méi xiǎng yì xiǎng ma?<br>A: Dāngrán xiǎng guò, kěshì wǒ méi xiǎng qǐlái.<br>B: Wǒ xiǎng méi guānxi ba.</span><span class='vi-back'>(A: Tôi quên mất bạn học nhìn thấy hôm qua họ gì rồi.<br>B: Cậu không nghĩ lại à?<br>A: Đương nhiên là có nghĩ qua, nhưng mà tôi không nhớ ra.<br>B: Tôi nghĩ không sao đâu.)</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>ĐỘNG TỪ HAI ÂM TIẾT LẶP LẠI</div>" +
+       "<div class='zh-front'>AB → ABAB</div>" +
+       "<div class='desc-front'>" +
+       "Khi động từ (một hoặc hai âm tiết) được lặp lại, mức độ cam kết thực hiện hành động sẽ giảm đi. Cấu trúc này thường xuất hiện trong câu mệnh lệnh, câu đề nghị.<br><br>" +
+       "<b>Cấu trúc:</b> Động từ hai âm tiết AB được lặp lại thành ABAB.<br><br>" +
+       "<b>Lưu ý cách dùng:</b> Vì bản thân việc lặp lại động từ đã mang nghĩa \"làm thử, làm một chút\" (giảm mức độ), nên không dùng kèm với 一下 hoặc 一點 (cũng mang nghĩa giảm mức độ) ở phía sau.<br>" +
+       "Không nói: *我得練習練習一下。 *你得關心關心她一點。" +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.4;'>" +
+       "<span class='zh-back'>今天學的漢字，我還得練習練習。</span><br><span class='pinyin-back'>Jīntiān xué de hànzì, wǒ hái děi liànxí liànxí.</span><span class='vi-back'>(Chữ Hán học hôm nay, tôi vẫn phải luyện tập một chút.)</span>" +
+       "<span class='zh-back'>你有空的時候，應該去旅行，多認識認識一些台灣朋友。</span><br><span class='pinyin-back'>Nǐ yǒu kòng de shíhou, yīnggāi qù lǚxíng, duō rènshi rènshi yìxiē Táiwān péngyǒu.</span><span class='vi-back'>(Lúc rảnh rỗi, bạn nên đi du lịch, quen biết thêm một chút bạn bè Đài Loan.)</span>" +
+       "<span class='zh-back'>我想了解了解你是怎麼學中文的，為什麼說得這麼流利。</span><br><span class='pinyin-back'>Wǒ xiǎng liǎojiě liǎojiě nǐ shì zěnme xué zhōngwén de, wèishénme shuō de zhème liúlì.</span><span class='vi-back'>(Tôi muốn tìm hiểu một chút xem bạn học tiếng Trung thế nào, tại sao nói lưu loát vậy.)</span>" +
+       "<span class='zh-back'>下星期要考試，你怎麼不準備準備呢？</span><br><span class='pinyin-back'>Xià xīngqī yào kǎoshì, nǐ zěnme bù zhǔnbèi zhǔnbèi ne?</span><span class='vi-back'>(Tuần sau thi rồi, sao bạn không chuẩn bị một chút đi?)</span>" +
+       "<span class='zh-back'>你不練習練習寫字，聽寫怎麼考得好？</span><br><span class='pinyin-back'>Nǐ bù liànxí liànxí xiě zì, tīngxiě zěnme kǎo de hǎo?</span><span class='vi-back'>(Bạn không luyện tập viết chữ một chút, bài chính tả sao thi tốt được?)</span>" +
+       "<span class='zh-back'>我們不參觀參觀，怎麼知道這個學校好不好？</span><br><span class='pinyin-back'>Wǒmen bù cānguān cānguān, zěnme zhīdào zhè gè xuéxiào hǎo bu hǎo?</span><span class='vi-back'>(Chúng ta không đi tham quan thử một chút, sao biết trường này tốt hay không?)</span>" +
+       "<span class='zh-back'>我是妳男朋友，妳是不是應該多關心關心我？</span><br><span class='pinyin-back'>Wǒ shì nǐ nánpéngyǒu, nǐ shì bú shì yīnggāi duō guānxīn guānxīn wǒ?</span><span class='vi-back'>(Tôi là bạn trai cậu, cậu có phải nên quan tâm tôi một chút không?)</span>" +
+       "<span class='zh-back'>這個週末，你要不要在家休息休息？</span><br><span class='pinyin-back'>Zhè gè zhōumò, nǐ yào bu yào zài jiā xiūxi xiūxi?</span><span class='vi-back'>(Cuối tuần này, cậu có muốn ở nhà nghỉ ngơi một chút không?)</span>" +
+       "<span class='zh-back'>我有什麼機會可以認識認識新朋友？</span><br><span class='pinyin-back'>Wǒ yǒu shénme jīhuì kěyǐ rènshi rènshi xīn péngyǒu?</span><span class='vi-back'>(Tôi có cơ hội nào để làm quen một chút bạn mới không?)</span>" +
+       "<span class='zh-back'>我很累，我得休息休息。</span><br><span class='pinyin-back'>Wǒ hěn lèi, wǒ děi xiūxi xiūxi.</span><span class='vi-back'>(Tôi rất mệt, tôi phải nghỉ ngơi một chút.)</span>" +
+       "<span class='zh-back'>放假的時候，我想去參觀參觀故宮。</span><br><span class='pinyin-back'>Fàngjià de shíhou, wǒ xiǎng qù cānguān cānguān Gùgōng.</span><span class='vi-back'>(Lúc nghỉ lễ, tôi muốn đi tham quan Cố Cung một chút.)</span>" +
+       "<span class='zh-back'>我得準備準備明天的聽寫，所以不能出去玩。</span><br><span class='pinyin-back'>Wǒ děi zhǔnbèi zhǔnbèi míngtiān de tīngxiě, suǒyǐ bù néng chūqù wán.</span><span class='vi-back'>(Tôi phải chuẩn bị một chút cho bài chính tả ngày mai, nên không thể đi chơi.)</span>" +
+       "<span class='zh-back'>同學生病了，我們得關心關心她。</span><br><span class='pinyin-back'>Tóngxué bìng le, wǒmen děi guānxīn guānxīn tā.</span><span class='vi-back'>(Bạn học bị ốm rồi, chúng ta phải quan tâm cô ấy một chút.)</span>" +
+       "<span class='zh-back'>要是我常練習練習，就不會忘了怎麼寫漢字。</span><br><span class='pinyin-back'>Yào shì wǒ cháng liànxí liànxí, jiù bú huì wàng le zěnme xiě hànzì.</span><span class='vi-back'>(Nếu tôi thường xuyên luyện tập một chút, thì sẽ không quên cách viết chữ Hán.)</span>" +
+       "</div>"
+  }
+];
+
+let idx = 0;
+
+function render() {
+  document.getElementById('frontFace').innerHTML = cards[idx].f;
+  document.getElementById('backFace').innerHTML = cards[idx].b;
+  document.getElementById('progress').innerText = `Thẻ ${idx + 1} / ${cards.length}`;
+}
+
+function flipCard() {
+  document.getElementById('card').classList.toggle('flipped');
+}
+
+function nextCard() {
+  idx = (idx + 1) % cards.length;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+function prevCard() {
+  idx = (idx - 1 + cards.length) % cards.length;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+    nextCard();
+    event.preventDefault();
+  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+    prevCard();
+    event.preventDefault();
+  } else if (event.key === ' ' || event.key === 'Enter') {
+    flipCard();
+    event.preventDefault();
+  }
+});
+
+render();
+</script>
+</body>
+</html>

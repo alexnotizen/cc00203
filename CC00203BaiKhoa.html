@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BÀI 3 - BÀI KHÓA</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Arial,"Microsoft YaHei",sans-serif;
+  background:linear-gradient(135deg,#eef4ff,#f9fbff);
+  display:flex; justify-content:center; color:#202124;
+}
+.app{width:min(900px,96vw); padding:20px 0 30px}
+h1{text-align:center;margin:0 0 6px;font-size:32px}
+.subtitle{text-align:center;color:#666;margin-bottom:14px;font-size:18px}
+.progress{text-align:center;font-size:18px;color:#666;margin-bottom:12px}
+.card-wrap{perspective:1200px; cursor:pointer}
+.card{
+  width:100%; height:750px; position:relative; transform-style:preserve-3d;
+  transition:transform .55s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:24px; background:white; box-shadow:0 12px 35px rgba(30,60,100,.15);
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:32px 36px; border:1px solid #e6eaf0; overflow:hidden;
+}
+.back{transform:rotateY(180deg)}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.context-title {
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #2c3e50;
+  line-height: 1.5;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 12px;
+}
+.dialogue-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dialogue-table td {
+  vertical-align: top;
+  padding: 10px 0;
+}
+.speaker-col {
+  width: 140px;
+  color: #000000;
+  font-weight: bold;
+  font-size: 24px;
+  white-space: nowrap;
+}
+.speaker-col-front {
+  width: 140px;
+  color: #718096;
+  font-weight: bold;
+  font-size: 40.5px;
+  white-space: nowrap;
+}
+.speech-col {
+  color: #e53e3e;
+  font-weight: bold;
+  font-size: 40.5px;
+  line-height: 1.5;
+}
+.speech-col-back {
+  color: #e53e3e;
+  font-weight: bold;
+  font-size: 27px;
+  line-height: 1.5;
+}
+.pinyin-block {
+  color: #718096;
+  font-weight: bold;
+  font-size: 22px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+}
+.meaning-text {
+  font-size: 21px;
+  color: #4b5563;
+  font-weight: normal;
+  margin-top: 4px;
+}
+
+.audio-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  vertical-align: middle;
+}
+.audio-btn:hover {
+  background-color: #edf2f7;
+}
+
+.hint{color:#888; font-size:18px; text-align:center; margin-top:14px}
+.controls{display:flex;gap:16px;justify-content:center;margin-top:22px}
+button{
+  border:0;border-radius:14px;padding:16px 26px;font-size:20px;
+  cursor:pointer;background:#e9eef7;color:#233044;
+}
+button.primary{background:#2563eb;color:white}
+button:hover{filter:brightness(.97)}
+.extra{display:flex;justify-content:center;gap:10px;margin-top:14px}
+.shuffle{background:#e9f8ef}
+
+@media(max-width:600px){
+ .app{padding-top:16px}.card{height:780px}
+ .face{padding:22px 20px}
+ .context-title{font-size:18px; margin-bottom:14px}
+ .speaker-col{width:100px; font-size:18px}
+ .speaker-col-front{width:100px; font-size:30px}
+ .speech-col{font-size:30px}
+ .speech-col-back{font-size:20px}
+ .pinyin-block{font-size:17px;}
+ .meaning-text{font-size:16px}
+ .controls button{padding:12px 16px; font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🇨🇳 BÀI 3 - BÀI KHÓA</h1>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="card-wrap" id="cardWrap" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="card-content" id="frontContent"></div>
+      </div>
+      <div class="face back">
+        <div class="card-content" id="backContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="event.stopPropagation();prevCard()">← Trước</button>
+    <button class="primary" onclick="event.stopPropagation();flipCard()">Lật thẻ</button>
+    <button onclick="event.stopPropagation();nextCard()">Tiếp →</button>
+  </div>
+  <div class="extra">
+    <button class="shuffle" onclick="event.stopPropagation();shuffleCards()">🔀 Trộn thẻ</button>
+  </div>
+</div>
+
+<script>
+const originalCards = [
+  {
+    "frontContext": "BÀI KHÓA 1: Nói về việc học tập tiếng Trung",
+    "frontLines": [
+      { "speaker": "田中:", "speech": "早，妳今天來得真早。" },
+      { "speaker": "如玉:", "speech": "是啊！我今天搭捷運來的。" },
+      { "speaker": "田中:", "speech": "今天的考試，妳準備了嗎？" },
+      { "speaker": "如玉:", "speech": "準備得差不多了，應該可以考得不錯。你覺得聽寫很容易吧？" },
+      { "speaker": "田中:", "speech": "是啊，日本人從小學就開始學寫漢字。" },
+      { "speaker": "如玉:", "speech": "我現在也覺得寫字不難，因為我在美國念高中的時候就學過了。" },
+      { "speaker": "田中:", "speech": "妳在這個語言中心學了多久了？" },
+      { "speaker": "如玉:", "speech": "我才學了半年，你呢？" },
+      { "speaker": "田中:", "speech": "我來了快一年了，可是我說話，還說得不夠流利。" },
+      { "speaker": "如玉:", "speech": "雖然我只來了半年，但是我知道我的中文進步了。" },
+      { "speaker": "田中:", "speech": "我覺得在說中文的環境裡學中文，進步得比較快。" },
+      { "speaker": "如玉:", "speech": "我同意。我希望回國的時候能看中文報紙。" },
+      { "speaker": "田中:", "speech": "我想妳一定可以。今天下了課，妳要去哪裡？" },
+      { "speaker": "如玉:", "speech": "我要去活動中心跟語言交換的朋友見面。" },
+      { "speaker": "田中:", "speech": "妳說的活動中心在哪裡？" },
+      { "speaker": "如玉:", "speech": "在一樓有麵包店的那棟樓裡面，我們一起去聽過一次演講，記得嗎？" },
+      { "speaker": "田中:", "speech": "噢，我想起來了。" }
+    ],
+    "backLines": [
+      { "speaker": "田中:", "speech": "早，妳今天來得真早。", "pinyin": "Zǎo, nǐ jīntiān lái de zhēn zǎo.", "meaning": "Chào buổi sáng, hôm nay cậu đến sớm thật đấy." },
+      { "speaker": "如玉:", "speech": "是啊！我今天搭捷運來的。", "pinyin": "Shì a! Wǒ jīntiān dā jiéyùn lái de.", "meaning": "Đúng vậy! Hôm nay tớ đi tàu điện ngầm đến." },
+      { "speaker": "田中:", "speech": "今天的考試，妳準備了嗎？", "pinyin": "Jīntiān de kǎoshì, nǐ zhǔnbèi le ma?", "meaning": "Bài kiểm tra hôm nay, cậu chuẩn bị chưa?" },
+      { "speaker": "如玉:", "speech": "準備得差不多了，應該可以考得不錯。你覺得聽寫很容易吧？", "pinyin": "Zhǔnbèi de chàbùduō le, yīnggāi kěyǐ kǎo de bùcuò. Nǐ juéde tīngxiě hěn róngyì ba?", "meaning": "Chuẩn bị gần xong rồi, chắc là có thể làm bài tốt. Cậu thấy bài chính tả dễ lắm đúng không?" },
+      { "speaker": "田中:", "speech": "是啊，日本人從小學就開始學寫漢字。", "pinyin": "Shì a, Rìběnrén cóng xiǎoxué jiù kāishǐ xué xiě hànzì.", "meaning": "Đúng vậy, người Nhật từ tiểu học đã bắt đầu học viết chữ Hán rồi." },
+      { "speaker": "如玉:", "speech": "我現在也覺得寫字不難，因為我在美國念高中的時候就學過了。", "pinyin": "Wǒ xiànzài yě juéde xiězì bù nán, yīnwèi wǒ zài Měiguó niàn gāozhōng de shíhòu jiù xuéguò le.", "meaning": "Bây giờ tớ cũng thấy viết chữ không khó, vì hồi học cấp ba ở Mỹ tớ đã học qua rồi." },
+      { "speaker": "田中:", "speech": "妳在這個語言中心學了多久了？", "pinyin": "Nǐ zài zhège yǔyán zhōngxīn xué le duōjiǔ le?", "meaning": "Cậu học ở trung tâm ngôn ngữ này bao lâu rồi?" },
+      { "speaker": "如玉:", "speech": "我才學了半年，你呢？", "pinyin": "Wǒ cái xué le bànnián, nǐ ne?", "meaning": "Tớ mới học được nửa năm, còn cậu?" },
+      { "speaker": "田中:", "speech": "我來了快一年了，可是我說話，還說得不夠流利。", "pinyin": "Wǒ lái le kuài yīnián le, kěshì wǒ shuōhuà, hái shuō de bùgòu liúlì.", "meaning": "Tớ đến đây gần một năm rồi, nhưng mà nói chuyện vẫn chưa đủ lưu loát." },
+      { "speaker": "如玉:", "speech": "雖然我只來了半年，但是我知道我的中文進步了。", "pinyin": "Suīrán wǒ zhǐ lái le bànnián, dànshì wǒ zhīdào wǒ de Zhōngwén jìnbù le.", "meaning": "Mặc dù tớ chỉ mới đến nửa năm, nhưng tớ biết tiếng Trung của tớ đã tiến bộ rồi." },
+      { "speaker": "田中:", "speech": "我覺得在說中文的環境裡學中文，進步得比較快。", "pinyin": "Wǒ juéde zài shuō Zhōngwén de huánjìng lǐ xué Zhōngwén, jìnbù de bǐjiào kuài.", "meaning": "Tớ thấy học tiếng Trung trong môi trường nói tiếng Trung thì tiến bộ nhanh hơn." },
+      { "speaker": "如玉:", "speech": "我同意。我希望回國的時候能看中文報紙。", "pinyin": "Wǒ tóngyì. Wǒ xīwàng huíguó de shíhòu néng kàn Zhōngwén bàozhǐ.", "meaning": "Tớ đồng ý. Tớ hy vọng lúc về nước có thể đọc được báo tiếng Trung." },
+      { "speaker": "田中:", "speech": "我想妳一定可以。今天下了課，妳要去哪裡？", "pinyin": "Wǒ xiǎng nǐ yīdìng kěyǐ. Jīntiān xià le kè, nǐ yào qù nǎlǐ?", "meaning": "Tớ nghĩ cậu nhất định có thể làm được. Hôm nay tan học, cậu muốn đi đâu?" },
+      { "speaker": "如玉:", "speech": "我要去活動中心跟語言交換的朋友見面。", "pinyin": "Wǒ yào qù huódòng zhōngxīn gēn yǔyán jiāohuàn de péngyǒu jiànmiàn.", "meaning": "Tớ muốn đến trung tâm hoạt động gặp người bạn trao đổi ngôn ngữ." },
+      { "speaker": "田中:", "speech": "妳說的活動中心在哪裡？", "pinyin": "Nǐ shuō de huódòng zhōngxīn zài nǎlǐ?", "meaning": "Trung tâm hoạt động mà cậu nói ở đâu vậy?" },
+      { "speaker": "如玉:", "speech": "在一樓有麵包店的那棟樓裡面，我們一起去聽過一次演講，記得嗎？", "pinyin": "Zài yīlóu yǒu miànbāodiàn de nà dòng lóu lǐmiàn, wǒmen yīqǐ qù tīngguò yīcì yǎnjiǎng, jìde ma?", "meaning": "Ở trong tòa nhà có tiệm bánh mì ở tầng một đó, chúng ta đã cùng nhau đi nghe diễn thuyết một lần rồi, nhớ không?" },
+      { "speaker": "田中:", "speech": "噢，我想起來了。", "pinyin": "Ō, wǒ xiǎng qǐlái le.", "meaning": "Ồ, tớ nhớ ra rồi." }
+    ]
+  },
+  {
+    "frontContext": "BÀI KHÓA 2: Kể về việc đến Đài Loan học tiếng",
+    "frontLines": [
+      { "speaker": "旁白:", "speech": "馬安同到師大來學中文，他選了每天上三個小時的課，下了課要寫作業，還要準備第二天的課。" },
+      { "speaker": "旁白:", "speech": "馬安同剛開始學寫中國字，覺得真難，所以每天都練習寫字，常常半夜十二點多才睡覺。" },
+      { "speaker": "旁白:", "speech": "雖然有點累，但是他很高興現在會寫很多字了。" },
+      { "speaker": "旁白:", "speech": "週末，馬安同比平常輕鬆多了。" },
+      { "speaker": "旁白:", "speech": "他有時候搭捷運去貓空喝茶，有時候坐公車去陽明山爬山。" },
+      { "speaker": "旁白:", "speech": "爬山的時候，他認識了很多台灣人。" },
+      { "speaker": "旁白:", "speech": "台灣人對外國人很好，常常跟馬安同聊天，告訴他一些台灣的文化。" },
+      { "speaker": "旁白:", "speech": "馬安同有一個語言交換的朋友，他們一有空，就拿著地圖搭捷運去逛逛。" },
+      { "speaker": "旁白:", "speech": "安同喜歡看捷運上的廣告，要是有沒學過的字，他就會問那位朋友怎麼說。" },
+      { "speaker": "旁白:", "speech": "他覺得到處走走，可以了解台灣人的生活，也可以練習練習中文，哪裡都能學中文，真是不錯。" }
+    ],
+    "backLines": [
+      { "speaker": "旁白:", "speech": "馬安同到師大來學中文，他選了每天上三個小時的課，下了課要寫作業，還要準備第二天的課。", "pinyin": "Mǎ Āntóng dào Shīdà lái xué Zhōngwén, tā xuǎn le měitiān shàng sān ge xiǎoshí de kè, xià le kè yào xiě zuòyè, hái yào zhǔnbèi dì èr tiān de kè.", "meaning": "Mã An Đồng đến Đại học Sư phạm để học tiếng Trung, cậu ấy chọn lớp học ba tiếng mỗi ngày, tan học phải làm bài tập, còn phải chuẩn bị bài cho ngày hôm sau." },
+      { "speaker": "旁白:", "speech": "馬安同剛開始學寫中國字，覺得真難，所以每天都練習寫字，常常半夜十二點多才睡覺。", "pinyin": "Mǎ Āntóng gāng kāishǐ xué xiě Zhōngguó zì, juéde zhēn nán, suǒyǐ měitiān dōu liànxí xiězì, chángcháng bànyè shí'èr diǎn duō cái shuìjiào.", "meaning": "Mã An Đồng lúc mới bắt đầu học viết chữ Trung Quốc, cảm thấy thật sự khó, cho nên mỗi ngày đều luyện viết chữ, thường thường hơn mười hai giờ đêm mới đi ngủ." },
+      { "speaker": "旁白:", "speech": "雖然有點累，但是他很高興現在會寫很多字了。", "pinyin": "Suīrán yǒudiǎn lèi, dànshì tā hěn gāoxìng xiànzài huì xiě hěn duō zì le.", "meaning": "Mặc dù hơi mệt, nhưng cậu ấy rất vui vì bây giờ đã biết viết rất nhiều chữ rồi." },
+      { "speaker": "旁白:", "speech": "週末，馬安同比平常輕鬆多了。", "pinyin": "Zhōumò, Mǎ Āntóng bǐ píngcháng qīngsōng duō le.", "meaning": "Cuối tuần, Mã An Đồng thoải mái hơn bình thường nhiều." },
+      { "speaker": "旁白:", "speech": "他有時候搭捷運去貓空喝茶，有時候坐公車去陽明山爬山。", "pinyin": "Tā yǒu shíhòu dā jiéyùn qù Māokōng hē chá, yǒu shíhòu zuò gōngchē qù Yángmíngshān páshān.", "meaning": "Cậu ấy có khi đi tàu điện ngầm đến Miêu Không uống trà, có khi đi xe buýt đến Dương Minh Sơn leo núi." },
+      { "speaker": "旁白:", "speech": "爬山的時候，他認識了很多台灣人。", "pinyin": "Páshān de shíhòu, tā rènshì le hěn duō Táiwānrén.", "meaning": "Lúc leo núi, cậu ấy đã quen biết rất nhiều người Đài Loan." },
+      { "speaker": "旁白:", "speech": "台灣人對外國人很好，常常跟馬安同聊天，告訴他一些台灣的文化。", "pinyin": "Táiwānrén duì wàiguórén hěn hǎo, chángcháng gēn Mǎ Āntóng liáotiān, gàosù tā yìxiē Táiwān de wénhuà.", "meaning": "Người Đài Loan đối xử với người nước ngoài rất tốt, thường xuyên trò chuyện với Mã An Đồng, nói cho cậu ấy biết một số văn hóa của Đài Loan." },
+      { "speaker": "旁白:", "speech": "馬安同有一個語言交換的朋友，他們一有空，就拿著地圖搭捷運去逛逛。", "pinyin": "Mǎ Āntóng yǒu yì ge yǔyán jiāohuàn de péngyǒu, tāmen yī yǒu kòng, jiù ná zhe dìtú dā jiéyùn qù guàngguang.", "meaning": "Mã An Đồng có một người bạn trao đổi ngôn ngữ, hễ họ có thời gian rảnh, là lại cầm bản đồ đi tàu điện ngầm đi dạo." },
+      { "speaker": "旁白:", "speech": "安同喜歡看捷運上的廣告，要是有沒學過的字，他就會問那位朋友怎麼說。", "pinyin": "Āntóng xǐhuān kàn jiéyùn shàng de guǎnggào, yàoshì yǒu méi xuéguò de zì, tā jiù huì wèn nà wèi péngyǒu zěnme shuō.", "meaning": "An Đồng thích xem quảng cáo trên tàu điện ngầm, nếu có chữ chưa từng học qua, cậu ấy sẽ hỏi người bạn đó nói thế nào." },
+      { "speaker": "旁白:", "speech": "他覺得到處走走，可以了解台灣人的生活，也可以練習練習中文，哪裡都能學中文，真是不錯。", "pinyin": "Tā juéde dàochù zǒuzou, kěyǐ liǎojiě Táiwānrén de shēnghuó, yě kěyǐ liànxí liànxí Zhōngwén, nǎlǐ dōu néng xué Zhōngwén, zhēn shì bùcuò.", "meaning": "Cậu ấy cảm thấy đi đây đi đó, có thể hiểu được cuộc sống của người Đài Loan, cũng có thể luyện tập tiếng Trung, ở đâu cũng có thể học tiếng Trung, thật sự không tồi." }
+    ]
+  }
+];
+
+let cards = [...originalCards];
+let index = 0;
+let flipped = false;
+
+function speakText(event, text) {
+  event.stopPropagation();
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-TW';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    alert('Trình duyệt của bạn không hỗ trợ tính năng phát âm.');
+  }
+}
+
+function render(){
+  const c = cards[index];
+  
+  let frontHtml = `<div class="context-title">${c.frontContext}</div><table class="dialogue-table">`;
+  c.frontLines.forEach(line => {
+    frontHtml += `
+      <tr>
+        <td class="speaker-col-front">${line.speaker}</td>
+        <td class="speech-col">
+          ${line.speech}
+          <button class="audio-btn" onclick="speakText(event, '${line.speech.replace(/'/g, "\\'")}')" title="Nghe phát âm">🔊</button>
+        </td>
+      </tr>`;
+  });
+  frontHtml += `</table>`;
+  document.getElementById('frontContent').innerHTML = frontHtml;
+
+  let backHtml = `<div class="context-title">${c.frontContext}</div><table class="dialogue-table">`;
+  c.backLines.forEach(line => {
+    backHtml += `
+      <tr>
+        <td class="speaker-col">${line.speaker}</td>
+        <td class="speech-col-back">
+          ${line.speech}
+          <button class="audio-btn" onclick="speakText(event, '${line.speech.replace(/'/g, "\\'")}')" title="Nghe phát âm">🔊</button>
+          <div class="pinyin-block">${line.pinyin}</div>
+          <div class="meaning-text">${line.meaning}</div>
+        </td>
+      </tr>`;
+  });
+  backHtml += `</table>`;
+  document.getElementById('backContent').innerHTML = backHtml;
+
+  document.getElementById('progress').textContent = `Thẻ ${index+1} / ${cards.length}`;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function flipCard(){
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function nextCard(){
+  index = (index + 1) % cards.length;
+  flipped = false; render();
+}
+
+function prevCard(){
+  index = (index - 1 + cards.length) % cards.length;
+  flipped = false; render();
+}
+
+function shuffleCards(){
+  for(let i=cards.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]]=[cards[j],cards[i]];
+  }
+  index=0; flipped=false; render();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') nextCard();
+  else if(e.key==='ArrowLeft') prevCard();
+  else if(e.key===' ' || e.key==='Enter'){
+    e.preventDefault();
+    flipCard();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
